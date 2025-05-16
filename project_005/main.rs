@@ -15,3 +15,9 @@ fn main() {
             println!("Too low!");
         } else if guess > secret {
             println!("Too high!");
+        } else {
+            println!("You win! The number was {}.", secret);
+            break;
+        }
+    }
+}
