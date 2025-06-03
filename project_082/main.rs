@@ -15,3 +15,16 @@ fn main() {
             writeln!(file, "{}", task).unwrap();
             println!("Added: {}", task);
         },
+        "list" => {
+            let contents = read_to_string("todo.txt").unwrap_or_default();
+            if contents.is_empty() {
+                println!("No tasks found.");
+            } else {
+                for (i, line) in contents.lines().enumerate() {
+                    println!("{}: {}", i + 1, line);
+                }
+            }
+        },
+        _ => println!("Unknown command"),
+    }
+}
