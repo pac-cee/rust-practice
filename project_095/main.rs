@@ -15,3 +15,9 @@ fn main() {
         ("c", "f") => value * 9.0 / 5.0 + 32.0,
         ("f", "c") => (value - 32.0) * 5.0 / 9.0,
         _ => {
+            println!("Unknown conversion");
+            return;
+        }
+    };
+    println!("{} {} = {:.2} {}", value, from, result, to);
+}
