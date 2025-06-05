@@ -15,3 +15,22 @@ fn main() {
                 request.as_reader().read_to_string(&mut content).unwrap();
                 let key = format!("k{}", map.lock().unwrap().len() + 1);
                 map.lock().unwrap().insert(key.clone(), content.clone());
+                let resp = Response::from_string(format!("Shortened: /{}", key));
+                request.respond(resp).unwrap();
+            },
+            (&Method::Get, path) if path.len() > 1 => {
+                let key = &path[1..];
+                let map = map.lock().unwrap();
+                if let Some(url) = map.get(key) {
+                    let resp = Response::from_string(format!("Redirect to: {}", url));
+                    request.respond(resp).unwrap();
+                } else {
+                    request.respond(Response::from_string("Not found").with_status_code(404)).unwrap();
+                }
+            },
+            _ => {
+                request.respond(Response::from_string("Try POST /shorten or GET /<key>")).unwrap();
+            }
+        }
+    }
+}
