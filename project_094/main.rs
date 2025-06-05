@@ -15,3 +15,20 @@ fn main() {
         _ => NaiveDate::from_ymd_opt(year, month + 1, 1).unwrap().pred_opt().unwrap().day(),
     };
     println!("Sun Mon Tue Wed Thu Fri Sat");
+    let mut day = 1;
+    let start_weekday = first.weekday().num_days_from_sunday();
+    for _ in 0..start_weekday { print!("    "); }
+    for _ in start_weekday..7 {
+        print!("{:>3} ", day);
+        day += 1;
+    }
+    println!();
+    while day <= last_day {
+        for _ in 0..7 {
+            if day > last_day { break; }
+            print!("{:>3} ", day);
+            day += 1;
+        }
+        println!();
+    }
+}
