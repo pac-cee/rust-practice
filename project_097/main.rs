@@ -15,3 +15,12 @@ fn check_strength(pwd: &str) -> &'static str {
 }
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 2 {
+        println!("Usage: <password>");
+        return;
+    }
+    let pwd = &args[1];
+    let strength = check_strength(pwd);
+    println!("Password strength: {}", strength);
+}
