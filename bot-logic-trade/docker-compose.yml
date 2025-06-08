@@ -32,3 +32,21 @@ services:
       - REDIS_URL=redis://redis:6379
     depends_on:
       - redis
+
+  rust-matching-engine:
+    build: ./rust
+    ports:
+      - "8084:8084"
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+
+  cpp-matching-engine:
+    build: ./cpp
+    ports:
+      - "8085:8085"
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
