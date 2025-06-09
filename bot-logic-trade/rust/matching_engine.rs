@@ -100,3 +100,20 @@ async fn match_orders(con: &mut redis::aio::Connection) {
         sell_order.remaining -= match_amount;
         if buy_order.remaining == 0.0 {
             buy_order.status = "matched".to_string();
+            let _: () = con.zrem("buy_orders", buy_order.id).await.unwrap();
+        }
+        if sell_order.remaining == 0.0 {
+            sell_order.status = "matched".to_string();
+            let _: () = con.zrem("sell_orders", sell_order.id).await.unwrap();
+        }
+        let _: () = con.set(format!("order:{}", buy_order.id), serde_json::to_string(&buy_order).unwrap()).await.unwrap();
+        let _: () = con.set(format!("order:{}", sell_order.id), serde_json::to_string(&sell_order).unwrap()).await.unwrap();
+    }
+}
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    let redis_url = std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
+    let state = web::Data::new(AppState {
+        redis_url: redis_url.clone(),
+        order_id: Mutex::new(1),
