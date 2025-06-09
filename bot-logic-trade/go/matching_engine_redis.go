@@ -49,3 +49,20 @@ func setupRedis() {
 
 func main() {
 	loadEnv()
+	setupRedis()
+	r := gin.Default()
+
+	r.POST("/order", addOrderHandler)
+	r.GET("/orderbook", getOrderBookHandler)
+	r.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
+
+	log.Println("Matching Engine Service (Redis) running on :8081")
+	r.Run(":8081")
+}
+
+func addOrderHandler(c *gin.Context) {
+	var req Order
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
