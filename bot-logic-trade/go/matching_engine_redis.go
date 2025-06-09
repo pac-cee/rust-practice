@@ -83,3 +83,20 @@ func addOrderHandler(c *gin.Context) {
 	redisClient.Set(ctx, orderKey, orderJson, 0)
 	if order.Type == "buy" {
 		redisClient.ZAdd(ctx, "buy_orders", &redis.Z{Score: -order.Price, Member: order.ID})
+	} else {
+		redisClient.ZAdd(ctx, "sell_orders", &redis.Z{Score: order.Price, Member: order.ID})
+	}
+	matchOrders()
+	c.JSON(http.StatusOK, order)
+}
+
+func getOrderBookHandler(c *gin.Context) {
+	buyOrderIDs, _ := redisClient.ZRangeWithScores(ctx, "buy_orders", 0, -1).Result()
+	sellOrderIDs, _ := redisClient.ZRangeWithScores(ctx, "sell_orders", 0, -1).Result()
+	buyOrders := []Order{}
+	sellOrders := []Order{}
+	for _, z := range buyOrderIDs {
+		id, _ := strconv.Atoi(fmt.Sprintf("%v", z.Member))
+		order, err := getOrderByID(id)
+		if err == nil {
+			buyOrders = append(buyOrders, order)
