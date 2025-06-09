@@ -49,3 +49,17 @@ This project is a scalable, polyglot backend for a trading platform using micros
    ```
 3. All services and Redis will start. Access endpoints at `localhost:<port>`.
 
+## Usage
+- **Add Order:** `POST /order` with JSON body `{ "userId": "...", "type": "buy"|"sell", "price": 100, "amount": 10 }`
+- **Get Orderbook:** `GET /orderbook`
+- **Health Check:** `GET /health`
+
+## Extensibility
+- **Event-Driven:** Stubs for Kafka/RabbitMQ are present for settlement/event workflows.
+- **API Gateway:** Add a Node.js (or other) API gateway for unified access and benchmarking.
+- **Benchmarking:** All endpoints are aligned for easy performance comparison.
+- **Monitoring/Testing:** Add logging, monitoring, or automated tests as needed.
+
+---
+
+See each language folder for details and Docker instructions. Contributions and extensions welcome!
