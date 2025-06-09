@@ -100,3 +100,20 @@ func getOrderBookHandler(c *gin.Context) {
 		order, err := getOrderByID(id)
 		if err == nil {
 			buyOrders = append(buyOrders, order)
+		}
+	}
+	for _, z := range sellOrderIDs {
+		id, _ := strconv.Atoi(fmt.Sprintf("%v", z.Member))
+		order, err := getOrderByID(id)
+		if err == nil {
+			sellOrders = append(sellOrders, order)
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"buy_orders":  buyOrders,
+		"sell_orders": sellOrders,
+	})
+}
+
+func getOrderByID(id int) (Order, error) {
+	orderKey := fmt.Sprintf("order:%d", id)
