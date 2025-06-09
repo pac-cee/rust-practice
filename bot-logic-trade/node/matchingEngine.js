@@ -66,3 +66,20 @@ app.get('/orderbook', async (req, res) => {
  * Returns service health status.
  */
 app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+/**
+ * Core matching logic: concurrency-safe, Redis-backed, with event publishing stub.
+ * Memory and cache managed via Redis, scalable for microservices.
+ */
+async function matchOrders() {
+  while (true) {
+    const buyIds = await client.zRange('buy_orders', 0, 0);
+    const sellIds = await client.zRange('sell_orders', 0, 0);
+    if (!buyIds.length || !sellIds.length) break;
+    const buyOrder = JSON.parse(await client.get(`order:${buyIds[0]}`));
+    const sellOrder = JSON.parse(await client.get(`order:${sellIds[0]}`));
+    if (buyOrder.price < sellOrder.price) break;
+    const matchAmount = Math.min(buyOrder.remaining, sellOrder.remaining);
+    const matchPrice = sellOrder.price;
