@@ -15,3 +15,20 @@ struct Order {
     status: String, // "open", "matched", "cancelled"
 }
 
+struct AppState {
+    redis_url: String,
+    order_id: Mutex<i32>,
+}
+
+/// Health endpoint
+async fn health() -> impl Responder {
+    HttpResponse::Ok().json(serde_json::json!({"status": "ok"}))
+}
+
+/// POST /order - Add new order (concurrency-safe, Redis-backed)
+async fn add_order(state: web::Data<AppState>, order: web::Json<Order>) -> impl Responder {
+    let mut id_guard = state.order_id.lock().unwrap();
+    let id = *id_guard;
+    *id_guard += 1;
+    drop(id_guard);
+    let mut new_order = order.into_inner();
