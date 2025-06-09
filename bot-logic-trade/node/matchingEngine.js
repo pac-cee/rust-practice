@@ -83,3 +83,23 @@ async function matchOrders() {
     if (buyOrder.price < sellOrder.price) break;
     const matchAmount = Math.min(buyOrder.remaining, sellOrder.remaining);
     const matchPrice = sellOrder.price;
+    console.log(`Matched: Buyer ${buyOrder.userId} <-> Seller ${sellOrder.userId} | ${matchAmount} @ $${matchPrice}`);
+    // TODO: Publish event to Kafka/RabbitMQ for settlement
+    buyOrder.remaining -= matchAmount;
+    sellOrder.remaining -= matchAmount;
+    if (buyOrder.remaining === 0) {
+      buyOrder.status = 'matched';
+      await client.zRem('buy_orders', buyOrder.id.toString());
+    }
+    if (sellOrder.remaining === 0) {
+      sellOrder.status = 'matched';
+      await client.zRem('sell_orders', sellOrder.id.toString());
+    }
+    await client.set(`order:${buyOrder.id}`, JSON.stringify(buyOrder));
+    await client.set(`order:${sellOrder.id}`, JSON.stringify(sellOrder));
+  }
+}
+
+app.listen(8083, () => {
+  console.log('Node.js Matching Engine Service running on :8083');
+});
