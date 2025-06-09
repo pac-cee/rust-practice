@@ -100,3 +100,20 @@ public class MatchingEngineRedisService {
             redisTemplate.opsForValue().set("order:" + buy.id, buy);
             redisTemplate.opsForValue().set("order:" + sell.id, sell);
         }
+    }
+
+    public static void main(String[] args) {
+        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+        SpringApplication.run(MatchingEngineRedisService.class, args);
+        System.out.println("Matching Engine Redis Service running on :8082");
+    }
+}
+
+class Order implements java.io.Serializable {
+    public int id;
+    public String userId;
+    public String type; // "buy" or "sell"
+    public double price;
+    public double amount;
+    public double remaining;
+    public String status; // "open", "matched", "cancelled"
