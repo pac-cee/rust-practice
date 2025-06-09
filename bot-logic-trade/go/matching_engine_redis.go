@@ -66,3 +66,20 @@ func addOrderHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	orderIDMutex.Lock()
+	order := Order{
+		ID:       orderID,
+		UserID:   req.UserID,
+		Type:     req.Type,
+		Price:    req.Price,
+		Amount:   req.Amount,
+		Remaining: req.Amount,
+		Status:   "open",
+	}
+	orderID++
+	orderIDMutex.Unlock()
+	orderKey := fmt.Sprintf("order:%d", order.ID)
+	orderJson, _ := json.Marshal(order)
+	redisClient.Set(ctx, orderKey, orderJson, 0)
+	if order.Type == "buy" {
+		redisClient.ZAdd(ctx, "buy_orders", &redis.Z{Score: -order.Price, Member: order.ID})
