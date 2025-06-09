@@ -49,3 +49,20 @@ app.get('/orderbook', async (req, res) => {
   const buyIds = await client.zRange('buy_orders', 0, -1);
   const sellIds = await client.zRange('sell_orders', 0, -1);
   const buyOrders = [];
+  const sellOrders = [];
+  for (const id of buyIds) {
+    const o = await client.get(`order:${id}`);
+    if (o) buyOrders.push(JSON.parse(o));
+  }
+  for (const id of sellIds) {
+    const o = await client.get(`order:${id}`);
+    if (o) sellOrders.push(JSON.parse(o));
+  }
+  res.json({ buy_orders: buyOrders, sell_orders: sellOrders });
+});
+
+/**
+ * GET /health
+ * Returns service health status.
+ */
+app.get('/health', (req, res) => {
