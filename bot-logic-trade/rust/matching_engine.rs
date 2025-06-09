@@ -117,3 +117,16 @@ async fn main() -> std::io::Result<()> {
     let state = web::Data::new(AppState {
         redis_url: redis_url.clone(),
         order_id: Mutex::new(1),
+    });
+    println!("Rust Matching Engine Service running on :8084");
+    HttpServer::new(move || {
+        App::new()
+            .app_data(state.clone())
+            .route("/health", web::get().to(health))
+            .route("/order", web::post().to(add_order))
+            .route("/orderbook", web::get().to(get_orderbook))
+    })
+    .bind(("0.0.0.0", 8084))?
+    .run()
+    .await
+}
