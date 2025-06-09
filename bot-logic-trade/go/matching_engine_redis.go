@@ -134,3 +134,20 @@ func matchOrders() {
 	for {
 		buyIDs, _ := redisClient.ZRangeWithScores(ctx, "buy_orders", 0, 0).Result()
 		sellIDs, _ := redisClient.ZRangeWithScores(ctx, "sell_orders", 0, 0).Result()
+		if len(buyIDs) == 0 || len(sellIDs) == 0 {
+			break
+		}
+		buyID, _ := strconv.Atoi(fmt.Sprintf("%v", buyIDs[0].Member))
+		sellID, _ := strconv.Atoi(fmt.Sprintf("%v", sellIDs[0].Member))
+		buyOrder, err1 := getOrderByID(buyID)
+		sellOrder, err2 := getOrderByID(sellID)
+		if err1 != nil || err2 != nil || buyOrder.Price < sellOrder.Price {
+			break
+		}
+		matchAmount := min(buyOrder.Remaining, sellOrder.Remaining)
+		matchPrice := sellOrder.Price
+		fmt.Printf("Matched: Buyer %s <-> Seller %s | %f @ $%f\n", buyOrder.UserID, sellOrder.UserID, matchAmount, matchPrice)
+		// TODO: Publish event to Kafka/RabbitMQ for settlement
+		buyOrder.Remaining -= matchAmount
+		sellOrder.Remaining -= matchAmount
+		if buyOrder.Remaining == 0 {
