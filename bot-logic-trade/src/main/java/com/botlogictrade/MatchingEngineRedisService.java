@@ -49,3 +49,20 @@ public class MatchingEngineRedisService {
         if (buyIds != null) {
             for (Object id : buyIds) {
                 Order o = (Order) redisTemplate.opsForValue().get("order:" + id);
+                if (o != null) buyOrders.add(o);
+            }
+        }
+        if (sellIds != null) {
+            for (Object id : sellIds) {
+                Order o = (Order) redisTemplate.opsForValue().get("order:" + id);
+                if (o != null) sellOrders.add(o);
+            }
+        }
+        Map<String, List<Order>> map = new HashMap<>();
+        map.put("buy_orders", buyOrders);
+        map.put("sell_orders", sellOrders);
+        return map;
+    }
+
+    @GetMapping("/health")
+    public Map<String, String> health() {
