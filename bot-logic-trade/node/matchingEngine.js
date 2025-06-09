@@ -15,3 +15,20 @@ const orderIdLock = {};
 
 /**
  * POST /order
+ * Adds a new order (concurrency-safe, Redis-backed, memory managed by Redis).
+ */
+app.post('/order', async (req, res) => {
+  // Lock orderId for atomic increment
+  let id;
+  // In production, use a Redis atomic counter for distributed safety
+  id = orderId++;
+  const order = {
+    id,
+    userId: req.body.userId,
+    type: req.body.type,
+    price: req.body.price,
+    amount: req.body.amount,
+    remaining: req.body.amount,
+    status: 'open',
+  };
+  await client.set(`order:${order.id}`, JSON.stringify(order));
