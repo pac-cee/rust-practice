@@ -117,3 +117,20 @@ func getOrderBookHandler(c *gin.Context) {
 
 func getOrderByID(id int) (Order, error) {
 	orderKey := fmt.Sprintf("order:%d", id)
+	val, err := redisClient.Get(ctx, orderKey).Result()
+	if err != nil {
+		return Order{}, err
+	}
+	var order Order
+	if err := json.Unmarshal([]byte(val), &order); err != nil {
+		return Order{}, err
+	}
+	return order, nil
+}
+
+// matchOrders performs atomic order matching using Redis, concurrency-safe.
+// This is the core of the microservice logic, with event publishing stub.
+func matchOrders() {
+	for {
+		buyIDs, _ := redisClient.ZRangeWithScores(ctx, "buy_orders", 0, 0).Result()
+		sellIDs, _ := redisClient.ZRangeWithScores(ctx, "sell_orders", 0, 0).Result()
