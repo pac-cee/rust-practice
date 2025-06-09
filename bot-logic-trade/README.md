@@ -32,3 +32,20 @@ This project is a scalable, polyglot backend for a trading platform using micros
 | Java     | 8082  | `/order`, `/orderbook`, `/health` |
 | Node.js  | 8083  | `/order`, `/orderbook`, `/health` |
 | Rust     | 8084  | `/order`, `/orderbook`, `/health` |
+| C++      | 8085  | `/order`, `/orderbook`, `/health` |
+
+### Additional Notes
+- **Scalability:** Each microservice is designed to be horizontally scalable. Redis acts as a central cache, ensuring data consistency across instances.
+- **Extensibility:** The project is structured to allow easy addition of new features, such as integrating with external APIs or adding new microservices in other languages.
+- **Benchmarking:** The unified API and consistent endpoints make it easy to compare the performance of different implementations under similar workloads.
+- **Quick Start:** Developers can quickly spin up the entire stack using Docker Compose, making it ideal for testing and development environments.
+
+## Quick Start (Docker Compose)
+
+1. Ensure Docker is installed.
+2. In the project root, run:
+   ```sh
+   docker-compose up --build
+   ```
+3. All services and Redis will start. Access endpoints at `localhost:<port>`.
+
