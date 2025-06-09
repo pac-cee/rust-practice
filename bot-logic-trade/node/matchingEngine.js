@@ -32,3 +32,20 @@ app.post('/order', async (req, res) => {
     status: 'open',
   };
   await client.set(`order:${order.id}`, JSON.stringify(order));
+  if (order.type === 'buy') {
+    await client.zAdd('buy_orders', [{ score: -order.price, value: order.id.toString() }]);
+  } else {
+    await client.zAdd('sell_orders', [{ score: order.price, value: order.id.toString() }]);
+  }
+  await matchOrders();
+  res.json(order);
+});
+
+/**
+ * GET /orderbook
+ * Returns the current buy and sell orderbook (cached in Redis).
+ */
+app.get('/orderbook', async (req, res) => {
+  const buyIds = await client.zRange('buy_orders', 0, -1);
+  const sellIds = await client.zRange('sell_orders', 0, -1);
+  const buyOrders = [];
