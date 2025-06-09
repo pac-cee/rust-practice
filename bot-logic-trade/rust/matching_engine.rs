@@ -49,3 +49,20 @@ async fn add_order(state: web::Data<AppState>, order: web::Json<Order>) -> impl 
     HttpResponse::Ok().json(new_order)
 }
 
+/// GET /orderbook - Returns current buy/sell orderbook
+async fn get_orderbook(state: web::Data<AppState>) -> impl Responder {
+    let client = Client::open(state.redis_url.clone()).unwrap();
+    let mut con = client.get_async_connection().await.unwrap();
+    let buy_ids: Vec<i32> = con.zrange("buy_orders", 0, -1).await.unwrap_or_default();
+    let sell_ids: Vec<i32> = con.zrange("sell_orders", 0, -1).await.unwrap_or_default();
+    let mut buy_orders = Vec::new();
+    let mut sell_orders = Vec::new();
+    for id in buy_ids {
+        let key = format!("order:{}", id);
+        if let Ok(val) = con.get::<_, String>(&key).await {
+            if let Ok(order) = serde_json::from_str::<Order>(&val) {
+                buy_orders.push(order);
+            }
+        }
+    }
+    for id in sell_ids {
