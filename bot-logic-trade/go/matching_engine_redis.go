@@ -32,3 +32,20 @@ var (
 )
 
 func loadEnv() {
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Println("No .env file found, using environment variables")
+	}
+}
+
+func setupRedis() {
+	redisURL := os.Getenv("REDIS_URL")
+	opt, err := redis.ParseURL(redisURL)
+	if err != nil {
+		log.Fatalf("Failed to parse REDIS_URL: %v", err)
+	}
+	redisClient = redis.NewClient(opt)
+}
+
+func main() {
+	loadEnv()
