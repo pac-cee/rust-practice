@@ -83,3 +83,20 @@ public class MatchingEngineRedisService {
             Order buy = (Order) redisTemplate.opsForValue().get("order:" + buyId);
             Order sell = (Order) redisTemplate.opsForValue().get("order:" + sellId);
             if (buy == null || sell == null || buy.price < sell.price) break;
+            double matchAmount = Math.min(buy.remaining, sell.remaining);
+            double matchPrice = sell.price;
+            System.out.printf("Matched: Buyer %s <-> Seller %s | %f @ $%f\n", buy.userId, sell.userId, matchAmount, matchPrice);
+            // TODO: Publish event to Kafka/RabbitMQ for settlement
+            buy.remaining -= matchAmount;
+            sell.remaining -= matchAmount;
+            if (buy.remaining == 0) {
+                buy.status = "matched";
+                redisTemplate.opsForZSet().remove("buy_orders", buy.id);
+            }
+            if (sell.remaining == 0) {
+                sell.status = "matched";
+                redisTemplate.opsForZSet().remove("sell_orders", sell.id);
+            }
+            redisTemplate.opsForValue().set("order:" + buy.id, buy);
+            redisTemplate.opsForValue().set("order:" + sell.id, sell);
+        }
