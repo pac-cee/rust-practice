@@ -32,3 +32,20 @@ public class MatchingEngineRedisService {
         String orderKey = "order:" + order.id;
         redisTemplate.opsForValue().set(orderKey, order);
         if (order.type.equals("buy")) {
+            redisTemplate.opsForZSet().add("buy_orders", order.id, -order.price);
+        } else {
+            redisTemplate.opsForZSet().add("sell_orders", order.id, order.price);
+        }
+        matchOrders();
+        return order;
+    }
+
+    @GetMapping("/orderbook")
+    public Map<String, List<Order>> getOrderBook() {
+        Set<Object> buyIds = redisTemplate.opsForZSet().range("buy_orders", 0, -1);
+        Set<Object> sellIds = redisTemplate.opsForZSet().range("sell_orders", 0, -1);
+        List<Order> buyOrders = new ArrayList<>();
+        List<Order> sellOrders = new ArrayList<>();
+        if (buyIds != null) {
+            for (Object id : buyIds) {
+                Order o = (Order) redisTemplate.opsForValue().get("order:" + id);
