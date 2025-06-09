@@ -151,3 +151,24 @@ func matchOrders() {
 		buyOrder.Remaining -= matchAmount
 		sellOrder.Remaining -= matchAmount
 		if buyOrder.Remaining == 0 {
+			buyOrder.Status = "matched"
+			redisClient.ZRem(ctx, "buy_orders", buyOrder.ID)
+		}
+		if sellOrder.Remaining == 0 {
+			sellOrder.Status = "matched"
+			redisClient.ZRem(ctx, "sell_orders", sellOrder.ID)
+		}
+		// Update orders in Redis
+		orderJson, _ := json.Marshal(buyOrder)
+		redisClient.Set(ctx, fmt.Sprintf("order:%d", buyOrder.ID), orderJson, 0)
+		orderJson, _ = json.Marshal(sellOrder)
+		redisClient.Set(ctx, fmt.Sprintf("order:%d", sellOrder.ID), orderJson, 0)
+	}
+}
+
+func min(a, b float64) float64 {
+	if a < b {
+		return a
+	}
+	return b
+}
