@@ -66,3 +66,20 @@ public class MatchingEngineRedisService {
 
     @GetMapping("/health")
     public Map<String, String> health() {
+        return Collections.singletonMap("status", "ok");
+    }
+
+    /**
+     * Core matching logic: concurrency-safe, Redis-backed, with event publishing stub.
+     * Memory and cache managed via Redis, scalable for microservices.
+     */
+    private void matchOrders() {
+        while (true) {
+            Set<Object> buySet = redisTemplate.opsForZSet().range("buy_orders", 0, 0);
+            Set<Object> sellSet = redisTemplate.opsForZSet().range("sell_orders", 0, 0);
+            if (buySet == null || sellSet == null || buySet.isEmpty() || sellSet.isEmpty()) break;
+            Integer buyId = Integer.valueOf(buySet.iterator().next().toString());
+            Integer sellId = Integer.valueOf(sellSet.iterator().next().toString());
+            Order buy = (Order) redisTemplate.opsForValue().get("order:" + buyId);
+            Order sell = (Order) redisTemplate.opsForValue().get("order:" + sellId);
+            if (buy == null || sell == null || buy.price < sell.price) break;
