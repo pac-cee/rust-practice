@@ -117,3 +117,15 @@ class Order implements java.io.Serializable {
     public double amount;
     public double remaining;
     public String status; // "open", "matched", "cancelled"
+
+    public Order() {}
+    public Order(int id, String userId, String type, double price, double amount) {
+        this.id = id;
+        this.userId = userId;
+        this.type = type;
+        this.price = price;
+        this.amount = amount;
+        this.remaining = amount;
+        this.status = "open";
+    }
+}
