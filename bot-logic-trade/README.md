@@ -15,3 +15,20 @@ This project is a scalable, polyglot backend for a trading platform using micros
 - **Event-Driven Stubs:** Stubs for Kafka/RabbitMQ are included to facilitate future integration with event-driven architectures, enabling features like settlement workflows or notifications.
 - **Docker Compose:** A single `docker-compose.yml` file orchestrates all services and Redis, simplifying deployment and testing.
 - **Comprehensive Documentation:** Each service includes inline comments and endpoint documentation to help developers understand the implementation and extend the functionality.
+
+## Project Structure
+- `go/`    — Contains the Go implementation of the matching engine, built with the Gin web framework and go-redis library for Redis integration.
+- `java/`  — Contains the Java implementation using Spring Boot, with RedisTemplate for Redis operations.
+- `node/`  — Contains the Node.js implementation using Express.js and the `redis` library for Redis communication.
+- `rust/`  — Contains the Rust implementation using the Actix-web framework and the `redis` crate for Redis integration.
+- `cpp/`   — Contains the C++ implementation using the Crow web framework, redis++ library for Redis, and nlohmann/json for JSON serialization.
+- `.env`   — A shared environment file for configuration, such as the Redis URL.
+- `docker-compose.yml` — A Docker Compose file to launch all services and Redis in a single command.
+
+## Endpoints & Ports
+| Language | Port  | Endpoints               |
+|----------|-------|-------------------------|
+| Go       | 8081  | `/order`, `/orderbook`, `/health` |
+| Java     | 8082  | `/order`, `/orderbook`, `/health` |
+| Node.js  | 8083  | `/order`, `/orderbook`, `/health` |
+| Rust     | 8084  | `/order`, `/orderbook`, `/health` |
