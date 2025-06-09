@@ -66,3 +66,20 @@ async fn get_orderbook(state: web::Data<AppState>) -> impl Responder {
         }
     }
     for id in sell_ids {
+        let key = format!("order:{}", id);
+        if let Ok(val) = con.get::<_, String>(&key).await {
+            if let Ok(order) = serde_json::from_str::<Order>(&val) {
+                sell_orders.push(order);
+            }
+        }
+    }
+    HttpResponse::Ok().json(serde_json::json!({"buy_orders": buy_orders, "sell_orders": sell_orders}))
+}
+
+/// Core matching logic: concurrency-safe, Redis-backed, with event publishing stub.
+/// Memory and cache managed via Redis, scalable for microservices.
+async fn match_orders(con: &mut redis::aio::Connection) {
+    loop {
+        let buy_ids: Vec<i32> = con.zrange("buy_orders", 0, 0).await.unwrap_or_default();
+        let sell_ids: Vec<i32> = con.zrange("sell_orders", 0, 0).await.unwrap_or_default();
+        if buy_ids.is_empty() || sell_ids.is_empty() {
