@@ -83,3 +83,20 @@ async fn match_orders(con: &mut redis::aio::Connection) {
         let buy_ids: Vec<i32> = con.zrange("buy_orders", 0, 0).await.unwrap_or_default();
         let sell_ids: Vec<i32> = con.zrange("sell_orders", 0, 0).await.unwrap_or_default();
         if buy_ids.is_empty() || sell_ids.is_empty() {
+            break;
+        }
+        let buy_id = buy_ids[0];
+        let sell_id = sell_ids[0];
+        let buy_val: String = match con.get(format!("order:{}", buy_id)).await { Ok(v) => v, Err(_) => break };
+        let sell_val: String = match con.get(format!("order:{}", sell_id)).await { Ok(v) => v, Err(_) => break };
+        let mut buy_order: Order = serde_json::from_str(&buy_val).unwrap();
+        let mut sell_order: Order = serde_json::from_str(&sell_val).unwrap();
+        if buy_order.price < sell_order.price { break; }
+        let match_amount = buy_order.remaining.min(sell_order.remaining);
+        let match_price = sell_order.price;
+        println!("Matched: Buyer {} <-> Seller {} | {} @ ${}", buy_order.user_id, sell_order.user_id, match_amount, match_price);
+        // TODO: Publish event to Kafka/RabbitMQ for settlement
+        buy_order.remaining -= match_amount;
+        sell_order.remaining -= match_amount;
+        if buy_order.remaining == 0.0 {
+            buy_order.status = "matched".to_string();
